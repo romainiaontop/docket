@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta charset="UTF-8">
+    <title>Docket - Tool Collection</title>
+    <style>
+        /* Previous styles remain the same until modal-header */
+        :root {
+            --background: #1a1a1a;
+            --surface: #2d2d2d;
+            --primary: #9d4edd;
+            --primary-hover: #b76aed;
+            --text: #e0e0e0;
+            --text-secondary: #a0a0a0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background);
+            color: var(--text);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .tools-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(250px, 1fr));
+            gap: 25px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1000px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+            .tools-grid {
+                grid-template-columns: minmax(250px, 1fr);
+            }
+        }
+
+        .tool-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(157, 78, 221, 0.1);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 6px 12px rgba(157, 78, 221, 0.2);
+        }
+
+        .tool-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .tool-card p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .modal-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95%;
+            height: 90%;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border: 1px solid var(--primary);
+        }
+
+        /* Updated modal header styles */
+        .modal-header {
+            height: 50px;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+            background: var(--background);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .open-tab-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            height: 32px;
+            display: flex;
+            align-items: center;
+        }
+
+        .open-tab-button:hover {
+            background: var(--primary-hover);
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px;
+            height: 32px;
+            width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .close-button:hover {
+            color: var(--primary);
+            background: rgba(157, 78, 221, 0.1);
+        }
+
+        .modal-content {
+            height: calc(100% - 50px);
+            background: var(--surface);
+            border-radius: 0 0 12px 12px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0 0 12px 12px;
+            background: white;
+        }
+
+        .warning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .warning-content {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .warning-content h2 {
+            color: #ff4444;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .warning-content p {
+            color: var(--text);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .warning-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .warning-button.active {
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .warning-button.active:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Main content blur */
+        .content-wrapper {
+            transition: filter 0.3s ease;
+        }
+
+        .content-wrapper.blurred {
+            filter: blur(8px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="warning-overlay" id="warningOverlay">
+        <div class="warning-content">
+            <h2>DO NOT SEND THIS WEBSITE OVER EMAIL</h2>
+            <p><strong></strong></p>
+            <p>This website will be blocked if sent to and from any name@nclack.org email, spread through word of mouth or a secure channel.</p>
+            <button class="warning-button" id="dismissWarning">I Understand</button>
+        </div>
+    </div>
+    <div class="content-wrapper blurred">
+    <div class="header">
+        <h1>Docket</h1>
+        <p>Collection of random stuff</p>
+    </div>
+
+    <div class="tools-container">
+        <div class="tools-grid">
+            <div class="tool-card" onclick="openTool('Live Tv', 'tv.html')">
+                <h3>Live Tv</h3>
+                <p>A few live tv channels</p>
+            </div>
+            <div class="tool-card" onclick="openTool('Proxies', 'pr.html')">
+                <h3>Proxies</h3>
+                <p>Browse Unblocked</p>
+            </div>
+            <div class="tool-card" onclick="openTool('About:Blank Cloaker', 'ab.html')">
+                <h3>About:Blank Cloaker</h3>
+                <p>Cloak links in about:blank</p>
+            </div>
+            <div class="tool-card" onclick="openTool('Local Storage Editor', 'le.html')">
+                <h3>Local Storage Editor</h3>
+                <p>Edit the local storage on your device</p>
+            </div>
+            <div class="tool-card" onclick="openTool('Game Site Links', 'nk.html')">
+                <h3>Game Site Links</h3>
+                <p>Latest links to games websites</p>
+            </div>
+            <div class="tool-card" onclick="openTool('', '')">
+                <h3></h3>
+                <p></p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    <div class="modal-overlay" id="toolModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modalTitle">Tool Name</h2>
+                <div class="modal-actions">
+                    <button class="open-tab-button" onclick="openInNewTab()">Open in New Tab</button>
+                    <button class="close-button" onclick="closeTool()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-content">
+                <iframe id="toolFrame" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dismissButton = document.getElementById('dismissWarning');
+    const warningOverlay = document.getElementById('warningOverlay');
+    const contentWrapper = document.querySelector('.content-wrapper');
+
+    // Check if the warning has already been dismissed
+    if (localStorage.getItem('warningDismissed') === 'true') {
+        warningOverlay.style.display = 'none';
+        contentWrapper.classList.remove('blurred');
+        return; // No need to show the warning
+    }
+
+    // Enable button after 5 seconds
+    setTimeout(() => {
+        dismissButton.classList.add('active');
+        dismissButton.style.cursor = 'pointer';
+    }, 5000);
+
+    // Dismiss warning when button is clicked
+    dismissButton.addEventListener('click', () => {
+        if (dismissButton.classList.contains('active')) {
+            warningOverlay.style.opacity = '0';
+            contentWrapper.classList.remove('blurred');
+            setTimeout(() => {
+                warningOverlay.style.display = 'none';
+            }, 300);
+
+            // Save the dismissal state to localStorage
+            localStorage.setItem('warningDismissed', 'true');
+        }
+    });
+});
+
+
+
+
+        let currentToolUrl = '';
+
+        function openTool(name, url) {
+            currentToolUrl = url;
+            document.getElementById('modalTitle').textContent = name;
+            document.getElementById('toolFrame').src = url;
+            document.getElementById('toolModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTool() {
+            document.getElementById('toolModal').style.display = 'none';
+            document.getElementById('toolFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        function openInNewTab() {
+            window.open(currentToolUrl, '_blank');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('toolModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTool();
+            }
+        });
+    </script>
+</body>
+</html>
